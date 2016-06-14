@@ -7,9 +7,7 @@
 
 'use strict';
 
-var Base = require('base');
-var isValid = require('is-valid-app');
-var extend = require('extend-shallow');
+var utils = require('./utils');
 
 /**
  * Exposes smart plugin for adding a `reporter` instance to a base application.
@@ -24,9 +22,9 @@ var extend = require('extend-shallow');
 
 module.exports = function reporter(config) {
   return function plugin(app) {
-    if (!isValid(this, 'base-reporter')) return;
+    if (!utils.isValid(this, 'base-reporter')) return;
 
-    var options = extend({}, config);
+    var options = utils.extend({}, config);
     this.define('reporter', new Reporter(this, options));
   };
 };
@@ -46,7 +44,7 @@ function Reporter(app, options) {
   if (!(this instanceof Reporter)) {
     return new Reporter(app, options);
   }
-  Base.call(this, {}, options);
+  utils.Base.call(this, {}, options);
   this.define('app', app);
 }
 
@@ -54,7 +52,7 @@ function Reporter(app, options) {
  * Extend Base
  */
 
-Base.extend(Reporter);
+utils.Base.extend(Reporter);
 
 /**
  * Capture file paths going through a middleware.
