@@ -1,0 +1,40 @@
+{
+  "name": "base-reporter",
+  "description": "Gather information about files being created and report the results with custom reporters.",
+  "version": "0.1.0",
+  "homepage": "https://github.com/node-base/base-reporter",
+  "author": "Brian Woodward (https://github.com/doowb)",
+  "repository": "node-base/base-reporter",
+  "bugs": {
+    "url": "https://github.com/node-base/base-reporter/issues"
+  },
+  "license": "MIT",
+  "files": [
+    "index.js"
+  ],
+  "main": "index.js",
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "gulp-format-md": "*",
+    "mocha": "^2.5.3"
+  },
+  "keywords": [],
+  "verb": {
+    "layout": "default",
+    "plugins": [
+      "gulp-format-md"
+    ],
+    "related": {
+      "list": []
+    },
+    "reflinks": [
+      "verb"
+    ]
+  }
+}
