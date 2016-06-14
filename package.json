@@ -1,6 +1,6 @@
 {
   "name": "base-reporter",
-  "description": "Gather information about files being created and report the results with custom reporters.",
+  "description": "Base application plugin for gathering information about files and reporting the results using custom reporters.",
   "version": "0.1.0",
   "homepage": "https://github.com/node-base/base-reporter",
   "author": "Brian Woodward (https://github.com/doowb)",
@@ -30,7 +30,14 @@
     "gulp-format-md": "*",
     "mocha": "^2.5.3"
   },
-  "keywords": [],
+  "keywords": [
+    "app",
+    "application",
+    "base",
+    "base-app",
+    "report",
+    "reporter"
+  ],
   "verb": {
     "toc": false,
     "layout": "default",

@@ -1,6 +1,6 @@
 # base-reporter [![NPM version](https://img.shields.io/npm/v/base-reporter.svg?style=flat)](https://www.npmjs.com/package/base-reporter) [![NPM downloads](https://img.shields.io/npm/dm/base-reporter.svg?style=flat)](https://npmjs.org/package/base-reporter) [![Build Status](https://img.shields.io/travis/node-base/base-reporter.svg?style=flat)](https://travis-ci.org/node-base/base-reporter)
 
-Gather information about files being created and report the results with custom reporters.
+Base application plugin for gathering information about files and reporting the results using custom reporters.
 
 ## Install
 
@@ -18,7 +18,7 @@ var reporter = require('base-reporter');
 
 ## API
 
-### [reporter](index.js#L25)
+### [reporter](index.js#L23)
 
 Exposes smart plugin for adding a `reporter` instance to a base application.
 
@@ -33,7 +33,7 @@ Exposes smart plugin for adding a `reporter` instance to a base application.
 app.use(reporter());
 ```
 
-### [.reporter.captureFiles](index.js#L70)
+### [.reporter.captureFiles](index.js#L68)
 
 Capture file paths going through a middleware.
 
@@ -45,7 +45,7 @@ Capture file paths going through a middleware.
 app.preWrite(/./, app.reporter.captureFiles());
 ```
 
-### [.reporter.add](index.js#L93)
+### [.reporter.add](index.js#L91)
 
 Add a reporter function to the reporter with the given name.
 
@@ -63,7 +63,7 @@ app.reporter.add('basic', function() {
 });
 ```
 
-### [.reporter.report](index.js#L111)
+### [.reporter.report](index.js#L109)
 
 Run a registered reporter function.
 
