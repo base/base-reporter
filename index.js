@@ -26,6 +26,7 @@ module.exports = function reporter(config) {
 
     var options = utils.extend({}, config);
     var cache = new Reporter(this, options);
+
     var reporter = function(fn) {
       if (typeof fn !== 'function') {
         throw new Error('expected "fn" to be a function');
@@ -36,37 +37,52 @@ module.exports = function reporter(config) {
     utils.define(reporter, 'cache', cache);
 
     /**
-     * Capture file paths going through a middleware.
+     * Creates a middleware function that can be used with application middleware methods.
      *
      * ```js
+     * // Default middleware will cache all files on the `reporter.files` array (can be accessed in report functions):
      * app.preWrite(/./, app.reporter.middleware());
+     *
+     * // Pass a custom property string to cache files on another property:
+     * app.preWrite(/./, app.reporter.middleware('templates'));
+     *
+     * // Pass a custom function that creates the middleware function. The function will take the reporter instance:
+     * app.preWrite(/./, app.reporter.middleware(function(reporter) {
+     *   var counter = 0;
+     *   return function(file, next) {
+     *     reporter.union('files', file);
+     *     reporter.set('counter', ++counter);
+     *     next():
+     *   };
+     * }));
      * ```
      * @name .reporter.middleware
+     * @param {String|Function} `fn` Pass a property string or function that will create a middleware function. Defaults to `files`.
      * @return {Function} Function that can be used as a middleware function.
      * @api public
      */
 
     utils.define(reporter, 'middleware', function(fn) {
-      if (typeof fn === 'string') {
-        return reporter(propMiddleware(fn));
-      }
       if (typeof fn === 'function') {
         return reporter(fn);
       }
-      return reporter(defaultMiddleware);
+      if (typeof fn === 'string') {
+        return reporter(defaultMiddleware(fn));
+      }
+      return reporter(defaultMiddleware('files'));
     });
 
     /**
-     * Add a reporter function to the reporter with the given name.
+     * Add a report function to the reporter with the given name. Function may take the reporter instance and options as parameters.
      *
      * ```js
-     * app.reporter.add('basic', function() {
+     * app.reporter.add('basic', function(reporter, options) {
      *   console.log(this.files);
      * });
      * ```
      * @name .reporter.add
      * @param {String} `name` Name of the reporter
-     * @param {Function} `reporter` Function to run when this reporter is used.
+     * @param {Function} `fn` report function to run when [.reporter.report(name)](#reporterreport) is called.
      * @return {Object} `this` to enable chaining
      * @api public
      */
@@ -77,7 +93,7 @@ module.exports = function reporter(config) {
     });
 
     /**
-     * Run a registered reporter function with the given options.
+     * Run a registered report function with the given options.
      *
      * ```js
      * app.reporter.report('basic', {foo: 'bar'});
@@ -129,14 +145,11 @@ function Reporter(app, options) {
 
 utils.Base.extend(Reporter);
 
-function defaultMiddleware(reporter) {
-  return function(file, next) {
-    reporter.union('files', file);
-    next();
-  };
-};
+/**
+ * Default middleware function that caches files on the given property.
+ */
 
-function propMiddleware(prop) {
+function defaultMiddleware(prop) {
   return function(reporter) {
     return function(file, next) {
       reporter.union(prop, file);
