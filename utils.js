@@ -9,6 +9,7 @@ require = utils;
  */
 
 require('base', 'Base');
+require('define-property', 'define');
 require('extend-shallow', 'extend');
 require('is-valid-app', 'isValid');
 require = fn;
