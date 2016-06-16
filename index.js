@@ -25,7 +25,82 @@ module.exports = function reporter(config) {
     if (!utils.isValid(this, 'base-reporter')) return;
 
     var options = utils.extend({}, config);
-    this.define('reporter', new Reporter(this, options));
+    var cache = new Reporter(this, options);
+    var reporter = function(fn) {
+      if (typeof fn !== 'function') {
+        throw new Error('expected "fn" to be a function');
+      }
+      return fn.call(cache, cache);
+    };
+
+    utils.define(reporter, 'cache', cache);
+
+    /**
+     * Capture file paths going through a middleware.
+     *
+     * ```js
+     * app.preWrite(/./, app.reporter.middleware());
+     * ```
+     * @name .reporter.middleware
+     * @return {Function} Function that can be used as a middleware function.
+     * @api public
+     */
+
+    utils.define(reporter, 'middleware', function(fn) {
+      if (typeof fn === 'string') {
+        return reporter(propMiddleware(fn));
+      }
+      if (typeof fn === 'function') {
+        return reporter(fn);
+      }
+      return reporter(defaultMiddleware);
+    });
+
+    /**
+     * Add a reporter function to the reporter with the given name.
+     *
+     * ```js
+     * app.reporter.add('basic', function() {
+     *   console.log(this.files);
+     * });
+     * ```
+     * @name .reporter.add
+     * @param {String} `name` Name of the reporter
+     * @param {Function} `reporter` Function to run when this reporter is used.
+     * @return {Object} `this` to enable chaining
+     * @api public
+     */
+
+    utils.define(reporter, 'add', function(name, fn) {
+      cache.set(['reporters', name], fn);
+      return reporter;
+    });
+
+    /**
+     * Run a registered reporter function with the given options.
+     *
+     * ```js
+     * app.reporter.report('basic', {foo: 'bar'});
+     * //=> file1.js,file2.js,file3.js
+     * ```
+     * @name .reporter.report
+     * @param  {String} `name` Name of the report to run.
+     * @return {Object} `this` to enable chaining
+     * @api public
+     */
+
+    utils.define(reporter, 'report', function(name, options) {
+      var fn = cache.get(['reporters', name]);
+      if (typeof fn !== 'function') {
+        throw new Error(`Unable to find reporter "${name}"`);
+      }
+
+      var opts = utils.extend({}, cache.options, options);
+      fn.call(cache, cache, opts);
+      return reporter;
+    });
+
+    this.define('reporter', reporter);
   };
 };
 
@@ -54,64 +129,18 @@ function Reporter(app, options) {
 
 utils.Base.extend(Reporter);
 
-/**
- * Capture file paths going through a middleware.
- *
- * ```js
- * app.preWrite(/./, app.reporter.captureFiles());
- * ```
- * @name reporter.captureFiles
- * @return {Function} Function that can be used as a middleware function.
- * @api public
- */
-
-Reporter.prototype.captureFiles = function() {
-  var self = this;
+function defaultMiddleware(reporter) {
   return function(file, next) {
-    self.union('files', file.path);
+    reporter.union('files', file);
     next();
   };
 };
 
-/**
- * Add a reporter function to the reporter with the given name.
- *
- * ```js
- * app.reporter.add('basic', function() {
- *   console.log(this.files);
- * });
- * ```
- * @name reporter.add
- * @param {String} `name` Name of the reporter
- * @param {Function} `reporter` Function to run when this reporter is used.
- * @return {Object} `this` to enable chaining
- * @api public
- */
-
-Reporter.prototype.add = function(name, reporter) {
-  this.set(['reporters', name], reporter);
-  return this;
+function propMiddleware(prop) {
+  return function(reporter) {
+    return function(file, next) {
+      reporter.union(prop, file);
+      next();
+    };
+  };
 };
-
-/**
- * Run a registered reporter function.
- *
- * ```js
- * app.reporter.report('basic');
- * //=> file1.js,file2.js,file3.js
- * ```
- * @name reporter.report
- * @param  {String} `name` Name of the report to run.
- * @return {Object} `this` to enable chaining
- * @api public
- */
-
-Reporter.prototype.report = function(name) {
-  var reporter = this.get(['reporters', name]);
-  if (typeof reporter !== 'function') {
-    throw new Error(`Unable to find reporter "${name}"`);
-  }
-  reporter.call(this, this);
-  return this;
-};
-
